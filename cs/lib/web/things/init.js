@@ -225,6 +225,60 @@ dojo.provide("cs.lib.web.things.init");
 		}
 	});
 
+        /**
+         * LIGHTSTRIP INTEGRATION
+         * Open a page in an iframe
+         */
+        csComponentContainer.push({
+                name : "cs.web.things.ledstrip",
+                        description : "configure color values of ledstrip",
+                inputs :
+                        [
+                                {
+                                        name: "URL",
+                                        type: "cs.type.String"
+                                },
+                                {
+                                        name: "Amount of Red",
+                                        type: "cs.type.Number"
+                                },
+                                {
+                                        name: "Amount of Green",
+                                        type: "cs.type.Number"
+                                },
+                                {
+                                        name: "Amount of Blue",
+                                        type: "cs.type.Number"
+                                }
+                        ],
+/*                outputs:  
+                        [
+                                {
+                                        name: "Power",
+                                        type: "cs.type.Number"
+                                }
+                               
+                        ],*/
+                image: "web/things/ledstrip.png",
+                exec : function(state){
+                       
+                        var id = state.inputs.item(0).getValue();
+                        var aurl = "http://cumulus.teco.edu:51525/actuator/entity/"+id+"/function/set";
+                        var component = this;
+                        var ri= state.inputs.item(1).getValue();
+                        var gi= state.inputs.item(2).getValue();
+                        var bi= state.inputs.item(3).getValue();
+                       
+                        //console.log ("IP:" + ip +" URL:"+ aurl +" STATE:"+ onoff);
+                        $.ajax({
+                              url: aurl,
+                              type: "PUT",
+                              data: {r : ri, g : gi, b : bi },
+                              success: function(html){return 1;}
+                            });
+
+                }
+        });
 
 	/**
 	 * Open a page in an iframe
