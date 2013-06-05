@@ -111,4 +111,162 @@ dojo.provide("cs.lib.web.things.init");
 				);
 		}
 	});
+
+
+        /**
+         * Open a page in an iframe
+         */
+        csComponentContainer.push({
+                name : "cs.web.things.plugwise",
+                        description : "switch on or off and get current power consumption",
+                inputs :
+                        [
+                                {
+                                        name: "URL",
+                                        type: "cs.type.String"
+                                },
+                                {
+                                        name: "on/off",
+                                        type: "cs.type.Boolean"
+                                }
+                        ],
+                outputs:  
+                        [
+                                {
+                                        name: "Power",
+                                        type: "cs.type.Number"
+                                }
+                               
+                        ],
+                image: "web/things/plugwise.png",
+                exec : function(state){
+                        this.setAsync();
+                       
+                        var id = state.inputs.item(0).getValue();
+                        var aurl = "http://cumulus.teco.edu:51525/actuator/entity/"+id+"/function/" + (state.inputs.item(1).getValue() ? "on" : "off");
+                        var surl = "http://cumulus.teco.edu:51525/sensor/entity/"+id+"/data";
+                        var component = this;
+                       
+                        //console.log ("IP:" + ip +" URL:"+ aurl +" STATE:"+ onoff);
+                       
+                        $.ajax({
+                                  url: aurl,
+                                  type: "PUT",
+                                  data: ({}),
+                                  success: function(html){
+                                        //console.log("successful ajax call for switch");
+                                           // alert("status of fan : " +onoff);
+                                    //component.finishAsync();  
+                                    $.getJSON(
+                                            surl,
+                                            function(json){
+                                            var temp = Number(json.energy.value);
+                                            //console.log(temp);
+                                            //alert(temp);
+                                            state.outputs.item(0).setValue(temp);
+                                            component.finishAsync();       
+                                            }
+                                            );
+                                    },
+                                        error: function(msg){
+                                        alert("Error on: "+aurl);  
+       }
+
+                        });
+                }
+        });
+
+
+	/**
+	 * Open a page in an iframe
+	 */
+	csComponentContainer.push({
+		name : "cs.web.things.upart",
+		description : "uPart Sensor Node",
+		inputs :
+			[
+				{
+					name: "id",
+					type: "cs.type.String"
+				}      
+			],
+		outputs:  
+			[
+				{
+					name: "light",
+					type: "cs.type.Number"
+				},
+				{
+					name: "move",
+					type: "cs.type.Number"
+				},
+				{
+					name: "temperature",
+					type: "cs.type.Number"
+				}
+			],
+		image: "web/things/upart.png",
+		exec : function(state){
+		this.setAsync();
+		var component = this;
+			var id = state.inputs.item(0).getValue();
+			var surl = "http://cumulus.teco.edu:51525/sensor/entity/"+id+"/data";
+				       
+		$.getJSON(
+				surl,  
+				function(data){
+				console.log(data);
+				state.outputs.item(0).setValue(Number(data.light.value));
+				state.outputs.item(1).setValue(Number(data.move.value));
+				state.outputs.item(2).setValue(Number(data.temperature.value));
+				component.finishAsync();           
+				}
+			 );
+		}
+	});
+
+
+	/**
+	 * Open a page in an iframe
+	 */
+        csComponentContainer.push({
+                name: "cs.web.things.discover",
+                description: "RESULT is collection of all incomming ELEMENTSs (at the moment only type numbers)",
+                outputs: [{
+                        name: "RESULT",
+                        type: "Collection<cs.type.String>"
+                }],
+                fields: [
+                {
+                        name: "type",
+                        type: "cs.type.String"
+                },
+                {
+                        name: "tags",
+                        type: "cs.type.String"
+                }
+                ],
+                image: "web/things/discover.png",
+                exec : function(state){
+                        this.setAsync();
+                        var type = state.fields.item(1).getValue();
+                        var tags = state.fields.item(0).getValue();
+                        var component = this;
+                        var surl = "http://cumulus.teco.edu:51525/sensor/class/"+type+(tags!=""?"?tags="+tags:"");
+                        //alert(surl);
+
+                        $.getJSON(
+                                        surl,  
+                                        function(data){
+                                        var collection = new cs.util.Container();
+                                        state.outputs.item(0).setValue(collection);
+                                        for( var entity in data )
+                                        {
+                                        collection.add(entity);
+                                        }
+                                        component.finishAsync();           
+                                        }
+                                 );
+                }
+        });
 	
