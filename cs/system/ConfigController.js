@@ -48,8 +48,8 @@
 		rootPath : ((dojo.config && dojo.config.modulePaths && dojo.config.modulePaths.cs && dojo.config.baseUrl) ? dojo.config.baseUrl + dojo.config.modulePaths.cs : "./lib/dojo/cs/" ),
 		
 		// Online-Services root-path
-		//rootServices : "http://clickscript.ch/services",
-		rootServices : "http://localhost/clickscript_server/services",
+		rootServices : "http://clickscript.ch/services",
+		//rootServices : "http://localhost/clickscript_server/services",
 
 		
 		// Debug-Mode in ClickScript console?
@@ -73,8 +73,8 @@
 		 * PLAYGROUND configuration
 		 */ 
 		playground : {
-			width : 1000, // Dimensions	
-			height : 500
+			width : "100%", // Dimensions	
+			height : "100%"
 		},
 		
 		/**

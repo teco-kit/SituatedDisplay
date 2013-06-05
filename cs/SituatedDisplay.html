@@ -1,0 +1,576 @@
+<html>
+    <head>
+        <title>TECO SituatedDisplay</title>
+		
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+
+		<!-- FAVICON -->
+		<link href="../cs/util/images/teco_favicon.ico" rel="icon" />
+				
+		<!-- CSS -->
+		<link rel="stylesheet" type="text/css" media="all" href="https://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/resources/dojo.css" />
+		<link rel="stylesheet" type="text/css" media="all" href="https://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dijit/themes/claro/claro.css" />	
+		
+		<!-- CSS ClickScript -->
+		<link rel="stylesheet" type="text/css" media="all" href="../cs/util/css/csIde.css" />
+	
+		<!-- LOAD DOJO FROM LOCAL LIB - for debugging purpose!-->
+		<script type="text/javascript">
+		        djConfig={
+		          parseOnLoad: false,
+		          isDebug: true,
+		          modulePaths: { "cs": "../../cs/" },
+		          debugAtAllCosts : true,
+		          baseUrl : "./lib/" 
+		        }; // base url ist something level 2 
+		</script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/dojo/1.6.1/dojo/dojo.xd.js"></script>	
+	
+		<!-- LOAD JQUERY -->
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+
+		<!-- LOAD FLOT -->
+		<script language="javascript" type="text/javascript" src="http://raw.github.com/flot/flot/0.8.1/jquery.flot.js"></script>
+	
+		<!-- SETUP PAGE -->
+        <script type="text/javascript">//<![CDATA[
+
+			/**
+			 * DESIGN STUFF ONLY
+			 */
+			
+
+
+			
+			/**
+			 * CLICKSCRIPT STUFF
+			 */
+			
+
+
+					
+
+
+
+				/**
+				 * TRY TO Load as much as possible in the onload-function to activate the loading screen
+				 */
+				// Init ClickScript globals and settings
+				dojo.require("dojo.parser");
+				
+				// Layout / Container
+				dojo.require("dijit.layout.BorderContainer");
+				dojo.require("dijit.layout.TabContainer");
+				dojo.require("dijit.layout.ContentPane");
+				dojo.require("dijit.TitlePane");
+				
+				// Forms
+				dojo.require("dijit.form.Button");
+				dojo.require("dijit.form.Textarea");
+					dojo.require("dijit.form.CheckBox");
+				dojo.require("dijit.form.DropDownButton");
+				
+				// Menu
+				dojo.require("dijit.MenuBar");
+			    dojo.require("dijit.PopupMenuBarItem");
+			    dojo.require("dijit.Menu");
+				dojo.require("dijit.MenuItem");
+				dojo.require("dijit.PopupMenuItem");
+
+				// Dialogs like configuration
+				dojo.require("dijit.Dialog");
+				
+				// JSONP
+				dojo.require("dojo.io.script");
+
+
+				// Init ClickScript globals and settings
+				dojo.require("cs.system.ConfigController");
+				
+				// Load IDE-Class
+				dojo.require("cs.controller.IdeController");
+				
+				/**
+				 * Load libraries
+				 */		
+				dojo.require("cs.lib.default.init");
+				dojo.require("cs.lib.statement.init");
+				dojo.require("cs.lib.web.browse.init");
+				dojo.require("cs.lib.web.misc.init");
+				dojo.require("cs.lib.web.things.init");
+				dojo.require("cs.lib.math.init");
+				dojo.require("cs.lib.string.init");
+				dojo.require("cs.lib.converter.init");
+				dojo.require("cs.lib.logic.init");
+				dojo.require("cs.lib.robotic.init");
+				dojo.require("cs.lib.collection.init");
+				dojo.require("cs.lib.display.init");
+				dojo.require("cs.lib.util.init");				
+				
+			// If all Javascriptfiles and Classes are loaded...
+			dojo.addOnLoad(function(){				
+				// Build Dijit Layout
+				dojo.parser.parse();
+				
+				// set version numbers where needed
+				dojo.query(".version-number").forEach(function(node, index, arr){
+					node.innerHTML = cs.config.version;
+				});
+								
+
+				// Inizialize the IDE
+				cs.global.ide.init();
+		
+				
+				
+				// prepare node to add style
+				/**
+				var toolbarStyleNode = document.createElement("style");
+				toolbarStyleNode.type = "text/css";
+				document.getElementsByTagName("head")[0].appendChild(toolbarStyleNode);
+				var addStyle = function(newStyle){
+					toolbarStyleNode.innerHTML = toolbarStyleNode.innerHTML + newStyle;
+				}
+				**/
+
+				
+				
+				
+				
+				/**
+				 * SOME IDE STUFF
+				 */
+				validateCheckboxRepeatedMode = function(){
+					var state = dijit.byId("checkbox-repeated-mode").get("checked");
+					cs.executionController.setRepeatedMode(state);
+					console.log("repeated? "+state);
+				};
+				
+				/*
+				dojo.connect(this.getWorklist(),"onNewRun",this,function(){
+					if(dojo.byId("runCounter")){
+						dojo.byId("runCounter").innerHTML = (this.getWorklist().getRunCounter());
+					} else {
+						this.write("NEW ROUND: "+this.getWorklist().getRunCounter());
+					}
+				});
+				*/
+				dojo.connect(cs.executionController.getWorklist(),"onStateChange",this,function(state){
+					/*
+					if(dojo.byId("csState")){
+	
+						dojo.query(".csStateIcon").style("display","none");
+						dojo.style(dojo.byId("csState"+state),"display","inline");
+					} else {
+						this.write("STATE changed to: "+state);
+					}*/
+					switch(state){
+						case "RUN":
+							dijit.byId("button-stop").set("iconClass","csActionStop");
+							dijit.byId("button-run").set("disabled",true);
+							dijit.byId("button-run").set("iconClass","csActionRunDisabled");
+							break;
+						case "STOP":
+							// someone pressed the stopbutton
+							dijit.byId("button-stop").set("iconClass","csActionStopDisabled");
+							dijit.byId("button-run").set("disabled",false);
+							dijit.byId("button-run").set("iconClass","csActionRun");						
+							break;
+						case "WAIT" :
+							break;
+						case "FINISH":
+							// script terminated on it's own (without an abord through stop-button)
+							dijit.byId("button-stop").set("iconClass","csActionStopDisabled");
+							dijit.byId("button-run").set("disabled",false);
+							dijit.byId("button-run").set("iconClass","csActionRun");
+							break;
+					}
+				});
+				
+				
+				/**
+				 * disable loading screen
+				 */
+				dojo.fadeOut({
+				        node:"loading",
+				        onEnd: function(){
+				            dojo.style("loading", "display", "none");
+				        }
+				    }).play();
+			    });   
+			
+function enter_full_screen(){
+    elem    = document.getElementsByTagName('html')[0];
+    calls   = ['requestFullScreen','webkitRequestFullScreen','mozRequestFullScreen'];
+
+    for(var i = 0; i < calls.length; i++){
+        if(elem[calls[i]]){
+            elem[calls[i]]();
+            return;
+        }
+    }
+}
+
+//]]></script>
+
+    </head>
+	<body class="cs claro" >
+	    <div id="loading" style="position:absolute;left:0px;top:0px;width:100%;height:100%;background-color:white;z-index:999;">
+		<div id="innerLoading" class="shadow">
+			<img src="../cs/util/images/teco.png" width="200px" />
+			<h1>SituatedDisplay is loading...</h1>
+			<div id="loadingbar"><img src="../cs/util/images/loadingbar.gif"/></div>
+		</div>
+		
+	    </div>
+	    
+					    <!-- START MAIN TAB CONTAINER -->
+					    <div 
+			      	class="mainTabContainer"
+			      	dojoType="dijit.layout.TabContainer"
+			      	data-dojo-props="tabPosition: 'top'">
+			                <div 
+			          	class="idePanel"
+			          	dojoType="dijit.layout.ContentPane" title="IDE" selected="true">
+			          	<!-- IDE -->
+	    <div    
+		id="ide"
+	        data-dojo-type="dijit.layout.BorderContainer"
+	        data-dojo-props="design: 'headline'">
+	        
+
+	        <!-- HEADER -->
+	        <div
+	            class="headerPanel"
+	            data-dojo-type="dijit.layout.ContentPane"
+	            data-dojo-props="region: 'top'">
+
+	            
+	            <!-- START MENUBAR -->
+	            <div dojoType="dijit.MenuBar" id="navMenu" >
+		            <div dojoType="dijit.PopupMenuBarItem">
+		                <span>
+		                    File
+		                </span>
+		                <div dojoType="dijit.Menu" id="fileMenu">
+		        		<div dojoType="dijit.MenuItem" onClick="cs.global.ide.cleanAll();" iconClass="dijitEditorIcon dijitEditorIconNewPage">
+		                        New 
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="cs.global.ide.showLoadDialog();" iconClass="dijitFolderOpened">
+		                        Load... 
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="cs.global.ide.saveScript();" iconClass="dijitIconSave">
+		                        Save
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="dijit.byId('dialog-save-as').show();" iconClass="dijitIconSave">
+		                        Save As...
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" iconClass="csMenuExport">
+						    <script type="dojo/method" event="onClick" args="evt">
+									var exportDialog = dijit.byId('dialog-export');
+									exportDialog.show();
+									dojo.byId("exportValue").value = cs.modelController.serializeScript();
+							</script>
+							Export...
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="dijit.byId('dialog-import').show()" iconClass="csMenuImport">
+		                        Import...
+		                    </div>
+		                </div>
+		            </div>
+		            <div dojoType="dijit.PopupMenuBarItem">
+		                <span>
+		                    Extras
+		                </span>
+		                <div dojoType="dijit.Menu" id="editMenu">
+		                    <div dojoType="dijit.MenuItem" onClick="dijit.byId('dialog-configuration').show()" iconClass="csMenuConfig">
+		                        Configuration
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="window.open('../cs/util/tutorial/tutorialEN.html','cs-window','status=1,width=900,height=600,scrollbars=1')" iconClass="csMenuTutorial">
+		                        Tutorial
+		                    </div>
+		                    <div dojoType="dijit.MenuItem" onClick="window.open('../cs/util/exercise/index.html','cs-window','status=1,width=900,height=600,scrollbars=1')" iconClass="csMenuExercise">
+		                        Exercise
+		                    </div>
+		                </div>
+		            </div>
+		            <div dojoType="dijit.PopupMenuBarItem">
+		                <span>
+		                    ?
+		                </span>
+		                <div dojoType="dijit.Menu" id="helpMenu">
+		                    <div dojoType="dijit.MenuItem" onClick="dijit.byId('dialog-about').show()"  iconClass="csMenuAbout">
+		                        About
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+			<!-- END MENUBAR -->
+			<div id="csToolBarTop" class="csToolBars">
+						</div>
+		</div>
+	        <!-- END HEADER -->
+
+	        <!-- RIGHT COLONE -->
+	        <div    
+	  	class="rightCol"
+	            data-dojo-type="dijit.layout.ContentPane"
+	            data-dojo-props="region: 'right', splitter: true">
+				
+				<!-- ACTIONS; CONTROLERS -->			
+			<div id="csActionBar" class="csMenuBar">
+				<button dojoType="dijit.form.Button" type="button" id="button-run" onClick="cs.executionController.run();" iconClass="csActionRun" showLabel="false">run</button>				
+					
+					<button dojoType="dijit.form.Button" type="button" id="button-stop" iconClass="csActionStopDisabled" showLabel="false">stop
+				    <script type="dojo/method" event="onClick" args="evt">
+					cs.executionController.stop();						
+						</script>
+				</button>	
+				
+				
+				<input id="checkbox-repeated-mode" name="loop" dojoType="dijit.form.CheckBox" value="loop" onChange="validateCheckboxRepeatedMode()">
+					<label for="checkbox-repeated-mode">
+					    Loop
+					</label>
+				
+					</div><!-- END: ACTIONS; CONTROLERS-->
+				
+				<!-- STATUS -->	
+				<div id="csStateBar" class="csMenuBar">
+					<span>state</span>			
+					<span id='csState'>
+						<span title='RUN...' id='csStateRUN' style='display:none' class='csStateIcon' ></span>
+						<span title='STOP...' id='csStateSTOP'  style='display:none' class='csStateIcon'></span>
+						<span title='WAIT...' id='csStateWAIT'  style='display:none' class='csStateIcon'></span>
+						<span title='FINISH...' id='csStateFINISH' class='csStateIcon'></span>
+					</span>
+					<span>&nbsp;&nbsp;run-counter:</span> <span id='runCounter'>0</span>
+				</div><!-- END: STATUS -->
+				
+				
+				
+				<!-- TOOLBAR RIGHT-->
+				<div id="csToolBarRight" class="csMenuBar csToolBars">
+				 
+				</div> 
+
+				
+				
+				<div id="csInfo"></div>
+				
+				 <br/>
+				<!-- DO NOT REMOVE! IS USED TO SIMULATE BLUR-EVENT -->
+				<input id="blur-widget"  dojoType="dijit.form.CheckBox" style="width:1px;height:1px">
+				<!-- END DO NOT REMOVE!-->
+				
+				<span class="clickScriptTitle"></span>
+
+		   </div>
+	        <!-- END RIGHT-COL -->
+
+	                
+	        <!-- LEFT-COLONE -->
+	        <div
+	            class="leftCol" 
+	            data-dojo-type="dijit.layout.ContentPane"
+	            data-dojo-props="region: 'center'">
+	     	<div    
+				class="leftColContainer"
+			        data-dojo-type="dijit.layout.BorderContainer"
+			        data-dojo-props="design: 'headline'">	        
+			        <!--<div
+			            id="toolBarPane" 
+			            data-dojo-type="dijit.layout.ContentPane"
+			            data-dojo-props="region: 'top'">
+			            <!-- TOOLBAR VARIANTE 2 
+			            <div id="csToolBarTop" class="csToolBars">
+						</div>
+					</div>-->
+		            <div
+		      	id="thePlayGroundPane"
+			            class="mainPanel" 
+			            data-dojo-type="dijit.layout.ContentPane"
+			            data-dojo-props="region: 'center'">
+			            <!-- PLAYGROUND -->
+			            <div id="csPlayground"></div>
+					</div>
+				</div>
+			</div>   
+		<!-- END LEFT-COL -->
+       </div>
+			                </div>
+			                <div 
+			          	class="execViewPanel"
+			          	dojoType="dijit.layout.ContentPane" title="Exec View" onShow="enter_full_screen();">
+			                    <!-- EXECUTION VIEW -->
+			                    <div id="csExecutionView"></div>
+			                </div>
+			                <div 
+			          	class="consolePanel"
+			          	dojoType="dijit.layout.ContentPane" title="Console">
+			          	<!-- CONSOLE -->
+			                    <div id="csConsole"></div>
+			                </div>
+				        </div>
+					<!-- END MAIN TAB CONTAINER -->
+	        
+    
+	<!-- 
+	  -- DIALOG: CONFIGURATION / OPTION
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-configuration" title="Configuration">
+		<h3>Change Debugsettings</h3>
+			<ul>
+				<li class="form-line">
+					<input id="checkbox-debug-mode" name="debug-mode" dojoType="dijit.form.CheckBox" value="debug-mode">
+					<label for="checkbox-debug-mode" class="longlabel">
+					    Debug-Mode ClickScript ON/OFF
+					</label>					
+				</li>
+				<li class="form-line">
+					<input id="checkbox-debug-dojo" name="debug-dojo" dojoType="dijit.form.CheckBox" value="debug-dojo">
+
+					<label for="checkbox-debug-dojo" class="longlabel">
+					    Debug-Mode Dojo ON/OFF
+					</label>
+				</li>
+				<li class="form-line">
+					<input id="checkbox-debug-worklist" name="debug-worklist" dojoType="dijit.form.CheckBox" value="debug-worklist">
+
+					<label for="checkbox-debug-worklist" class="longlabel">
+					    Show Worklist ON/OFF
+					</label>
+				</li>
+			</ul>
+			<h3>Change User</h3>
+			<div class="form-line">
+				<label>Choose User</label><span id="select-user"></span>
+			</div>
+			<div class="form-line">
+				<label>Name</label><input id="change-username" name="change-username" dojoType="dijit.form.TextBox" value"change-username" trim="true"/>
+			</div>
+			<div class="form-line">
+				<label>secret</label><input id="change-user-token" name="change-user-token" dojoType="dijit.form.TextBox" value"change-user-token" trim="true"/>
+			</div>
+			<div class="form-line">
+				<label>&nbsp;</label>
+				<button dojoType="dijit.form.Button" type="button" id="button-change-user">Set User
+			    <script type="dojo/method" event="onClick" args="evt">
+				        var username  = dijit.byId("change-username").get('value');
+				        var token     = dijit.byId("change-user-token").get('value');
+				        cs.global.ide.changeUser(username,token);
+				    </script>		
+			</button>				
+			</div>
+			
+			
+
+	</div>
+	
+	
+	<!-- 
+	  -- DIALOG: IMPORT 
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-import" title="Import">
+		<textarea id="importValue" dojoType="dijit.form.Textarea"></textarea>
+		<div class="form-line">
+			<button dojoType="dijit.form.Button" type="button" id="button-import">Import
+			    <script type="dojo/method" event="onClick" args="evt">
+					// import Data
+					cs.global.scriptPlayer.run(dojo.byId("importValue").value);
+					
+					// reset value
+					dojo.byId("importValue").value = "";
+					
+					// close import dialog
+					dijit.byId('dialog-import').hide();
+				</script>
+			</button>
+			<button dojoType="dijit.form.Button" type="button" id="button-import-cancel">Cancel
+			    <script type="dojo/method" event="onClick" args="evt">
+				        dijit.byId('dialog-import').hide();
+				    </script>		
+			</button>
+		</div>
+	</div>
+	
+	
+	<!-- 
+	  -- DIALOG: EXPORT 
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-export" title="Export">
+			<textarea id="exportValue" dojoType="dijit.form.Textarea"></textarea>
+			<div class="form-line">
+			<button dojoType="dijit.form.Button" type="button" id="button-export-cancel">Cancel
+			    <script type="dojo/method" event="onClick" args="evt">
+				        dijit.byId('dialog-export').hide();
+				    </script>		
+			</button>				
+			</div>
+	</div>
+	<!-- 
+	  -- DIALOG: ABOUT 
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-about" title="About ClickScript">
+		<div class="about">
+			<div class="about-picture">
+				<img src="../cs/util/images/teco.png" width="200px" />
+			</div>
+			<div class="about-version">
+				TECO Situated Display 0.1alpha-20130522
+			</div>
+			<div class="about-contact">
+				display@teco.edu 
+			</div>
+			<div class="about-txt">
+				TECO Situated Display is based on ClickScript
+			</div>
+			<div class="about-picture">
+				<img src="../cs/util/images/logoXx64.png" />
+			</div>
+			<div class="about-version">
+				ClickScript <span class="version-number"></span>
+			</div>
+			<div class="about-contact">
+				contact'at'clickscript.ch 
+			</div>
+			<div class="about-txt">
+				ClickScript is a visual programming language in the browser. It is not allowed to reuse ClickScript on other pages without explicit permission of the owner. Non-commercial use only.<br/>&copy;2009-2011 powered by clickscript.ch
+			</div>
+		</div>			
+	</div>
+	<!-- 
+	  -- DIALOG: LOAD 
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-load" title="Load ClickScript">
+		<div class="load">
+				<div>Select Script to load...</div>
+				<div id="list-scripts"></div>
+		</div>			
+	</div>
+	
+	 <!-- 
+	  -- DIALOG: SAVE AS 
+	  -->
+	<div dojoType="dijit.Dialog" id="dialog-save-as" title="Load ClickScript">
+		<div class="load">
+				<div>Please enter a name to store the script</div>
+				<div class="form-line">
+					<label>Scriptname</label>
+					<input type="text" name="saveAsName" value="" dojoType="dijit.form.TextBox"
+trim="true" id="input-text-save-as" />
+				</div>
+				<div class="form-line">
+					<label>&nbsp;</label>
+					<button dojoType="dijit.form.Button" type="button" id="button-save-as">Save
+				    <script type="dojo/method" event="onClick" args="evt">
+					        var name = dijit.byId("input-text-save-as").get('value');
+					        cs.global.ide.saveAsScript(name);
+					    </script>		
+				</button> 
+			</div>
+		</div>			
+	</div>
+	</body>
+</html>

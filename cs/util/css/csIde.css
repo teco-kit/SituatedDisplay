@@ -43,8 +43,8 @@ html, body {
 	margin-bottom: 5px;
 }
 
-.cs .bottomLeftContainer {
-	height: 150px;
+.cs .mainTabContainer {
+	width: 100%; height: 100%; margin: 0px;
 	/*margin-right: 10px;*/
 }
 
@@ -65,7 +65,7 @@ html, body {
 
 .cs.claro .dijitMenuBar {
 	/*background: none;transparent url('../images/ide/background-right-column.png') repeat center center;*/
-	background-color: #90c000;
+	background-color: #32a189;
 	padding-left: 15px;
 	border: 1px solid transparent;
 	background-image: none;
@@ -315,6 +315,7 @@ html, body {
 
 #csExecutionViewPlayground {
   min-height: 400px;
+  height: 99%;
   position: relative;
 }
 
@@ -440,4 +441,11 @@ html, body {
 .csMenuHelp {background-image:url("../images/ide/menu/help.png"); width: 16px; height: 16px;}
 .csMenuAbout {background-image:url("../images/ide/menu/infomation.png"); width: 16px; height: 16px;}
 
+
+/**
+ *	TAB CONTAINER STRIPS
+ */
+:-moz-full-screen div.nowrapTabStrip {
+    display: none;
+} 
 
