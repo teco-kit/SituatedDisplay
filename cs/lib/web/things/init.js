@@ -268,12 +268,13 @@ dojo.provide("cs.lib.web.things.init");
                         var ri= state.inputs.item(1).getValue();
                         var gi= state.inputs.item(2).getValue();
                         var bi= state.inputs.item(3).getValue();
+			var sendData = { r : ri, g : gi, b : bi };
                        
                         //console.log ("IP:" + ip +" URL:"+ aurl +" STATE:"+ onoff);
                         $.ajax({
                               url: aurl,
                               type: "PUT",
-                              data: {r : ri, g : gi, b : bi },
+                              data: JSON.stringify(sendData),
                               success: function(html){return 1;}
                             });
 
